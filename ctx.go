@@ -48,5 +48,10 @@ func (ctx *ctx) Cancel(err error) {
 func WithCancel(parent context.Context) (context.Context, CancelFunc) {
 	c, cancel := context.WithCancel(parent)
 	ctx := &ctx{ctx: c, cancel: cancel}
-	return ctx, func(err error) { ctx.Cancel(err) }
+	return ctx, func(err error) {
+		if err == nil {
+			err = context.Canceled
+		}
+		ctx.Cancel(err)
+	}
 }
