@@ -12,6 +12,7 @@ func TestWithCancelX(t *testing.T) { XTestWithCancelX(t) }
 func XTestWithCancelX(t *testing.T) {
 	c1, cancel := WithCancel(context.Background())
 	defer cancel(nil)
+	defer cancel(context.Canceled)
 	if c1.Err() != nil {
 		t.Fatal()
 	}

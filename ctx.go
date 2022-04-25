@@ -3,8 +3,9 @@ package ctx
 import (
 	"context"
 	"fmt"
-	"sync/atomic"
+	"go.uber.org/atomic"
 	"time"
+	"unsafe"
 )
 
 type CancelFunc func(err error)
@@ -12,7 +13,7 @@ type CancelFunc func(err error)
 type ctx struct {
 	ctx    context.Context
 	cancel context.CancelFunc
-	err    atomic.Value
+	err    atomic.UnsafePointer
 }
 
 func (ctx *ctx) String() string {
@@ -32,7 +33,7 @@ func (ctx *ctx) Err() error {
 	if err == nil {
 		return nil
 	}
-	return err.(error)
+	return *((*error)(err))
 }
 
 func (ctx *ctx) Value(key any) any {
@@ -40,7 +41,7 @@ func (ctx *ctx) Value(key any) any {
 }
 
 func (ctx *ctx) Cancel(err error) {
-	if ctx.err.CompareAndSwap(nil, err) {
+	if ctx.err.CAS(nil, unsafe.Pointer(&err)) {
 		ctx.cancel()
 	}
 }
